@@ -29,6 +29,8 @@ class Content(Base):
     cpu_consumption = Column(Float(), nullable=False)
     ram_consumption = Column(Float(), nullable=False)
     total_consumption = Column(Float(), nullable=False)
+    co2 = Column(Float(), nullable=False)
+    price = Column(Float(), nullable=False)
     def __str__(self):
         return str(self.id)+ " " + str(self.time) + " " + str(self.cpu_consumption) +" "+ str(self.ram_consumption)\
     +" "+ str(self.total_consumption)
