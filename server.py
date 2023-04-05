@@ -20,7 +20,7 @@ def get_db():
         db.close()
 
 
-@app.get('/comps')
+@app.get('/comps', response_model=list[DataForLeonidWithComputer])
 def get_all_comps(db: Session = Depends(get_db)):
     column = db.execute(
         select(
@@ -37,7 +37,7 @@ def get_all_comps(db: Session = Depends(get_db)):
             for i in range(len(column))]
     return data
 
-@app.get('/co2')
+@app.get('/co2', response_model=list[DataForLeonid])
 def get_co2_for_graphic(unit: Unit, db: Session = Depends(get_db)):
     format = {
         'days': '%Y-%j',
@@ -58,7 +58,7 @@ def get_co2_for_graphic(unit: Unit, db: Session = Depends(get_db)):
     return data
 
 # получение данных для построения графика
-@app.get('/vals')
+@app.get('/vals', response_model=list[DataForLeonid])
 def get_vals_for_graphic(unit: Unit, db: Session = Depends(get_db)):
     format = {
         'days': '%Y-%j',
