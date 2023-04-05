@@ -9,6 +9,7 @@ class Unit(Enum):
     days: str = 'days'
     weeks: str = 'weeks'
     hours: str = 'hours'
+    minutes: str = 'minutes'
 
 
 class DataForLeonid(BaseModel):
@@ -31,7 +32,8 @@ class DataForLeonidWithComputer(BaseModel):
     value_min: float
     value_max: float
     value_sum: float
-
+    co2: float
+    price: float
 
 class Data(BaseModel):
     class Config:
@@ -43,6 +45,8 @@ class Data(BaseModel):
     cpu_consumption: float
     ram_consumption: float
     total_consumption: float
+    co2: float
+    price: float
 
 
 class DataDb(BaseModel):
