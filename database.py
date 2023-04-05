@@ -1,14 +1,12 @@
-import warnings
-
-from sqlalchemy import String, Integer, Column, DateTime, Float, ForeignKey
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import MetaData, Table, String, Integer, Column, Text, DateTime, Boolean, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.ext.declarative import declarative_base
+import warnings
 
 warnings.filterwarnings('ignore')
 
 Base = declarative_base()
-
 
 class Computer(Base):
     __tablename__ = 'computers'
@@ -30,12 +28,9 @@ class Content(Base):
     cpu_consumption = Column(Float(), nullable=False)
     ram_consumption = Column(Float(), nullable=False)
     total_consumption = Column(Float(), nullable=False)
-    co2 = Column(Float(), nullable=False)
-    price = Column(Float(), nullable=False)
-
     def __str__(self):
-        return str(self.id) + " " + str(self.time) + " " + str(self.cpu_consumption) + " " + str(self.ram_consumption) \
-               + " " + str(self.total_consumption)
+        return str(self.id)+ " " + str(self.time) + " " + str(self.cpu_consumption) +" "+ str(self.ram_consumption)\
+    +" "+ str(self.total_consumption)
 
 
 path = "mysql+pymysql://root:my-secret-pw@localhost:3307/db"
