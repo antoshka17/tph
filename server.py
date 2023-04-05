@@ -28,12 +28,34 @@ def get_all_comps(db: Session = Depends(get_db)):
             func.avg(Content.total_consumption).label("consumption"),
             func.max(Content.total_consumption).label("consumption"),
             func.sum(Content.total_consumption).label("consumption"),
-            func.min(Content.total_consumption).label("consumption")).group_by("label")).all()
+            func.min(Content.total_consumption).label("consumption"),
+        func.sum(Content.co2).label('consumption'),
+        func.sum(Content.price).label('consumption')).group_by("label")).all()
     print(column)
     data = [DataForLeonidWithComputer(name=f'{column[i][0]}', value_avg=column[i][1], value_max=column[i][2],
-                                      value_sum=column[i][3], value_min=column[i][4]) for i in range(len(column))]
+                                      value_sum=column[i][3], value_min=column[i][4], co2=column[i][5], price=column[i][6])
+            for i in range(len(column))]
     return data
 
+@app.get('/co2')
+def get_co2_for_graphic(unit: Unit, db: Session = Depends(get_db)):
+    format = {
+        'days': '%Y-%j',
+        'weeks': '%Y-%U',
+        'hours': '%Y-%j-%H',
+        'years': '%Y',
+        'minutes': '%Y-%j-%H-%i'
+    }
+    column_avg = db.execute(select(func.DATE_FORMAT(Content.time, format[unit.name]).label("label"),
+                                   func.avg(Content.co2).label("co2"),
+                                   func.max(Content.co2).label("co2"),
+                                   func.sum(Content.co2).label("co2"),
+                                   func.min(Content.co2).label("co2")).group_by("label"))
+    arr_column = column_avg.all()
+    data = [DataForLeonid(date=arr_column[i][0], value_avg=arr_column[i][1], value_max=arr_column[i][2],
+                          value_sum=arr_column[i][3], value_min=arr_column[i][4]) for i in range(len(arr_column))]
+    print(data)
+    return data
 
 # получение данных для построения графика
 @app.get('/vals')
@@ -42,7 +64,8 @@ def get_vals_for_graphic(unit: Unit, db: Session = Depends(get_db)):
         'days': '%Y-%j',
         'weeks': '%Y-%U',
         'hours': '%Y-%j-%H',
-        'years': '%Y'
+        'years': '%Y',
+        'minutes':'%Y-%j-%H-%i'
     }
     column_avg = db.execute(select(func.DATE_FORMAT(Content.time, format[unit.name]).label("label"),
                                    func.avg(Content.total_consumption).label("consumption"),
@@ -82,7 +105,8 @@ def get_comp(comp_id, db: Session = Depends(get_db)):
 @app.post('/comp/{comp_id}')
 def create_comp_con(comp_id, data: Data, db: Session = Depends(get_db)):
     comp = Content(comp_id=comp_id, time=data.time, cpu_consumption=data.cpu_consumption,
-                   ram_consumption=data.ram_consumption, total_consumption=data.total_consumption)
+                   ram_consumption=data.ram_consumption, total_consumption=data.total_consumption, co2=data.co2,
+                   price=data.price)
     db.add(comp)
     db.commit()
     db.refresh(comp)
