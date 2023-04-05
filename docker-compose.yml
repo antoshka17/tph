@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  db_dev:
+    image: mysql:8.0.32
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "my-secret-pw"
+
+  web:
+    build: .
+    command: uvicorn server:app --reload --host 0.0.0.0
+    volumes:
+      - .:/code
+    env_file: ./.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_dev
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "5054:8080"
+    depends_on:
+      - db_dev

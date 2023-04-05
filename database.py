@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData, Table, String, Integer, Column, Text, DateTime, Boolean, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
@@ -33,6 +34,9 @@ class Content(Base):
     +" "+ str(self.total_consumption)
 
 
-path = "mysql+pymysql://root:my-secret-pw@localhost:3307/db"
+path = os.getenv(
+    key="db_path",
+    default="mysql+pymysql://root:my-secret-pw@localhost:3307/db"
+)
 engine = create_engine(path, pool_size=100, max_overflow=200)
 session = sessionmaker(engine)
