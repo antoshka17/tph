@@ -3,6 +3,7 @@ from sqlalchemy import MetaData, Table, String, Integer, Column, Text, DateTime,
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import warnings
+import os
 
 warnings.filterwarnings('ignore')
 
@@ -33,6 +34,9 @@ class Content(Base):
     +" "+ str(self.total_consumption)
 
 
-path = "mysql+pymysql://root:my-secret-pw@localhost:3307/db"
+path = os.getenv(
+    key="db_path",
+    default="mysql+pymysql://root:my-secret-pw@localhost:3307/db"
+)
 engine = create_engine(path, pool_size=100, max_overflow=200)
 session = sessionmaker(engine)
