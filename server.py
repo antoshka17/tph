@@ -3,11 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-
 from typing import Optional
-
 from database import Base, Computer, Content, engine, session
-from models import Data, DataForLeonid, DataForLeonidWithComputer, Unit
+from models import Data, DataForLeonid, DataForLeonidWithComputer, Unit, Comp, Classroom
 
 Base.metadata.create_all(bind=engine)
 
@@ -34,14 +32,15 @@ def get_db():
 graph_router = APIRouter(tags=["graph"])
 
 
+
 @graph_router.get("/co2", response_model=list[DataForLeonid])
 def get_co2_for_graphic(unit: Unit, computer_id: Optional[int] = None, db: Session = Depends(get_db)):
     format = {
         "days": "%Y-%j",
         "weeks": "%Y-%U",
-        "hours": "%Y-%j-%H",
+        "hours": "%Y-%c-%d-%H",
         "years": "%Y",
-        "minutes": "%Y-%j-%H-%i",
+        "minutes": "%Y-%c-%d-%H-%i",
     }
     if computer_id is not None:
         query = select(
@@ -81,9 +80,9 @@ def get_vals_for_graphic(unit: Unit,computer_id: Optional[int] = None, db: Sessi
     format = {
         "days": "%Y-%j",
         "weeks": "%Y-%U",
-        "hours": "%Y-%j-%H",
+        "hours": "%Y-%c-%d-%H",
         "years": "%Y",
-        "minutes": "%Y-%j-%H-%i",
+        "minutes": "%Y-%c-%d-%H-%i",
     }
     if computer_id is not None:
         query = select(
@@ -119,31 +118,50 @@ def get_vals_for_graphic(unit: Unit,computer_id: Optional[int] = None, db: Sessi
 
 computer_router = APIRouter(tags=["computer"])
 
+@computer_router.get("/housings", response_model=list[Comp])
+def get_all_housings(db: Session = Depends(get_db)):
+    query = select(func.substring(Computer.name, 1, 1).label("name")).group_by("name").distinct()
+    data = db.execute(query).all()
+    return data
+
+@computer_router.get("/housings/{housing}", response_model=list[Classroom])
+def get_all_classrooms_in_housing(housing: str, db: Session = Depends(get_db)):
+    query = select(func.substring(Computer.name, 1, 1).label("name"),
+                   func.substring(Computer.name, 1, 4).label("classroom")).group_by("name")
+    data = db.execute(query).all()
+    data = [data[i] for i in range(len(data)) if data[i].name == housing]
+    return data
 
 @computer_router.get("/", response_model=list[DataForLeonidWithComputer])
-def get_all_comps(db: Session = Depends(get_db)):
-    column = db.execute(
-        select(
+def get_all_comps(building: Optional[str] = None, classroom:Optional[str] = None, db: Session = Depends(get_db)):
+    query = select(
             Content.comp_id.label("label"),
+            Computer.name.label("name"),
             func.avg(Content.total_consumption).label("consumption"),
             func.max(Content.total_consumption).label("consumption"),
             func.sum(Content.total_consumption).label("consumption"),
             func.min(Content.total_consumption).label("consumption"),
             func.sum(Content.co2).label("consumption"),
             func.sum(Content.price).label("consumption"),
-        ).group_by("label")
-    ).all()
+        ).group_by("label", "name")
+    if building is not None:
+        query = query.filter(func.substring(Computer.name, 1, 1) == building)
+    if classroom is not None:
+        query = query.filter(func.substring(Computer.name, 1, 4) == classroom)
+    column = db.execute(query).all()
     print(column)
     data = [
         DataForLeonidWithComputer(
             id=column[i][0],
-            name=f"{column[i][0]}",
-            value_avg=column[i][1],
-            value_max=column[i][2],
-            value_sum=column[i][3],
-            value_min=column[i][4],
-            co2=column[i][5],
-            price=column[i][6],
+            name=column[i][1],
+            building=column[i][1][0],
+            classroom=column[i][1][0:4],
+            value_avg=column[i][2],
+            value_max=column[i][3],
+            value_sum=column[i][4],
+            value_min=column[i][5],
+            co2=column[i][6],
+            price=column[i][7],
         )
         for i in range(len(column))
     ]
@@ -234,3 +252,17 @@ def delete_comp(comp_id, db: Session = Depends(get_db)):
 app.include_router(graph_router, prefix="/graph")
 app.include_router(computer_router, prefix="/computer")
 app.include_router(consumption_router, prefix="/consumption")
+
+
+
+# /computer?housing=a&classroom=a300
+
+# /housing
+# a300_hello_world
+# ^
+# |
+
+
+# /classroom?housing=a
+# a300
+#

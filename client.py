@@ -8,12 +8,12 @@ from server import Content, create_comp, create_comp_con, session, get_vals_for_
 time_start = time.time()
 curr_time = time.time()
 iterations = 1
-computer = create_comp(platform.node(), session())
+computer = create_comp("b502_gfg", session())
 start_consumption_cpu = cpu.get_consumption()
 start_consumption_ram = ram.get_consumption()
 while curr_time - time_start < 30:
     if iterations % 10 == 0:
-        content = get_vals_for_graphic(Unit.minutes, session())
+        content = get_vals_for_graphic(Unit.minutes,None, session())
         # print('for graphic: -----------------')
         # print(content[0], content[1], content[2])
     cpu_con, ram_con, total_con, co2, price, val_cpu, val_ram = calculate(cpu, ram, start_consumption_cpu,

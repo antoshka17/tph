@@ -22,12 +22,24 @@ class DataForLeonid(BaseModel):
     value_max: float
     value_sum: float
 
+class Comp(BaseModel):
+    class Config:
+        orm_mode = True
+    name: str
+
+class Classroom(BaseModel):
+    class Config:
+        orm_mode = True
+    name: str
+    classroom: str
 
 class DataForLeonidWithComputer(BaseModel):
     class Config:
         orm_mode = True
 
     name: str
+    building: str
+    classroom: str
     id: int
     value_avg: float
     value_min: float
@@ -35,6 +47,7 @@ class DataForLeonidWithComputer(BaseModel):
     value_sum: float
     co2: float
     price: float
+
 
 class Data(BaseModel):
     class Config:

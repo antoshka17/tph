@@ -13,7 +13,6 @@ class Computer(Base):
     __tablename__ = 'computers'
     id = Column(Integer(), primary_key=True, autoincrement=True)
     name = Column(String(200))
-    comp = relationship("Content", back_populates='comp')
 
 
 # Child(parent_id=10)
@@ -24,7 +23,6 @@ class Content(Base):
     __tablename__ = 'log'
     id = Column(Integer(), primary_key=True, autoincrement=True)
     comp_id = Column(Integer(), ForeignKey('computers.id'))
-    comp = relationship('Computer', back_populates='comp')
     time = Column(DateTime(), nullable=False)
     cpu_consumption = Column(Float(), nullable=False)
     ram_consumption = Column(Float(), nullable=False)
