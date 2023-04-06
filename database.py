@@ -38,7 +38,7 @@ class Content(Base):
 
 path = os.getenv(
     key="db_path",
-    default="mysql+pymysql://root:my-secret-pw@localhost:3306/mysql"
+    default="mysql+pymysql://root:my-secret-pw@localhost:3307/db"
 )
 engine = create_engine(path, pool_size=100, max_overflow=200)
 session = sessionmaker(engine)

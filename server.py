@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from typing import Optional
+
 from database import Base, Computer, Content, engine, session
 from models import Data, DataForLeonid, DataForLeonidWithComputer, Unit
 
@@ -33,7 +35,7 @@ graph_router = APIRouter(tags=["graph"])
 
 
 @graph_router.get("/co2", response_model=list[DataForLeonid])
-def get_co2_for_graphic(unit: Unit, db: Session = Depends(get_db)):
+def get_co2_for_graphic(unit: Unit, computer_id: Optional[int] = None, db: Session = Depends(get_db)):
     format = {
         "days": "%Y-%j",
         "weeks": "%Y-%U",
@@ -41,15 +43,23 @@ def get_co2_for_graphic(unit: Unit, db: Session = Depends(get_db)):
         "years": "%Y",
         "minutes": "%Y-%j-%H-%i",
     }
-    column_avg = db.execute(
-        select(
+    if computer_id is not None:
+        query = select(
+            func.DATE_FORMAT(Content.time, format[unit.name]).label("label"),
+            func.avg(Content.co2).label("co2"),
+            func.max(Content.co2).label("co2"),
+            func.sum(Content.co2).label("co2"),
+            func.min(Content.co2).label("co2"),
+        ).group_by("label").filter(Content.comp_id==computer_id)
+    else:
+        query = select(
             func.DATE_FORMAT(Content.time, format[unit.name]).label("label"),
             func.avg(Content.co2).label("co2"),
             func.max(Content.co2).label("co2"),
             func.sum(Content.co2).label("co2"),
             func.min(Content.co2).label("co2"),
         ).group_by("label")
-    )
+    column_avg = db.execute(query)
     arr_column = column_avg.all()
     data = [
         DataForLeonid(
@@ -67,7 +77,7 @@ def get_co2_for_graphic(unit: Unit, db: Session = Depends(get_db)):
 
 # получение данных для построения графика
 @graph_router.get("/consumption", response_model=list[DataForLeonid])
-def get_vals_for_graphic(unit: Unit, db: Session = Depends(get_db)):
+def get_vals_for_graphic(unit: Unit,computer_id: Optional[int] = None, db: Session = Depends(get_db)):
     format = {
         "days": "%Y-%j",
         "weeks": "%Y-%U",
@@ -75,15 +85,23 @@ def get_vals_for_graphic(unit: Unit, db: Session = Depends(get_db)):
         "years": "%Y",
         "minutes": "%Y-%j-%H-%i",
     }
-    column_avg = db.execute(
-        select(
+    if computer_id is not None:
+        query = select(
+            func.DATE_FORMAT(Content.time, format[unit.name]).label("label"),
+            func.avg(Content.total_consumption).label("consumption"),
+            func.max(Content.total_consumption).label("consumption"),
+            func.sum(Content.total_consumption).label("consumption"),
+            func.min(Content.total_consumption).label("consumption"),
+        ).group_by("label").filter(Content.comp_id == computer_id)
+    else:
+        query = select(
             func.DATE_FORMAT(Content.time, format[unit.name]).label("label"),
             func.avg(Content.total_consumption).label("consumption"),
             func.max(Content.total_consumption).label("consumption"),
             func.sum(Content.total_consumption).label("consumption"),
             func.min(Content.total_consumption).label("consumption"),
         ).group_by("label")
-    )
+    column_avg = db.execute(query)
     arr_column = column_avg.all()
     data = [
         DataForLeonid(
@@ -118,6 +136,7 @@ def get_all_comps(db: Session = Depends(get_db)):
     print(column)
     data = [
         DataForLeonidWithComputer(
+            id=column[i][0],
             name=f"{column[i][0]}",
             value_avg=column[i][1],
             value_max=column[i][2],

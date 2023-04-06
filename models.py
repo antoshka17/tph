@@ -28,6 +28,7 @@ class DataForLeonidWithComputer(BaseModel):
         orm_mode = True
 
     name: str
+    id: int
     value_avg: float
     value_min: float
     value_max: float
