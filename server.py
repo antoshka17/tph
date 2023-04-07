@@ -135,15 +135,18 @@ def get_all_classrooms_in_housing(housing: str, db: Session = Depends(get_db)):
 @computer_router.get("/", response_model=list[DataForLeonidWithComputer])
 def get_all_comps(building: Optional[str] = None, classroom:Optional[str] = None, db: Session = Depends(get_db)):
     query = select(
-            Content.comp_id.label("label"),
-            Computer.name.label("name"),
-            func.avg(Content.total_consumption).label("consumption"),
-            func.max(Content.total_consumption).label("consumption"),
-            func.sum(Content.total_consumption).label("consumption"),
-            func.min(Content.total_consumption).label("consumption"),
-            func.sum(Content.co2).label("consumption"),
-            func.sum(Content.price).label("consumption"),
-        ).group_by("label", "name")
+        Computer.id,
+        Computer.name,
+        func.avg(Content.total_consumption).label("consumption"),
+        func.max(Content.total_consumption).label("consumption"),
+        func.sum(Content.total_consumption).label("consumption"),
+        func.min(Content.total_consumption).label("consumption"),
+        func.sum(Content.co2).label("consumption"),
+        func.sum(Content.price).label("consumption"),
+    ).join(
+        Content,
+        Computer.id == Content.comp_id
+    ).group_by(Computer.id)
     if building is not None:
         query = query.filter(func.substring(Computer.name, 1, 1) == building)
     if classroom is not None:

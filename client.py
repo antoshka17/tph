@@ -8,10 +8,10 @@ from server import Content, create_comp, create_comp_con, session, get_vals_for_
 time_start = time.time()
 curr_time = time.time()
 iterations = 1
-computer = create_comp("b502_gfg", session())
+computer = create_comp("b532_gfg", session())
 start_consumption_cpu = cpu.get_consumption()
 start_consumption_ram = ram.get_consumption()
-while curr_time - time_start < 30:
+while curr_time - time_start < 3000:
     if iterations % 10 == 0:
         content = get_vals_for_graphic(Unit.minutes,None, session())
         # print('for graphic: -----------------')
